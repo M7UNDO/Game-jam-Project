@@ -13,6 +13,7 @@ namespace StarterAssets
 		public bool jump;
 		public bool sprint;
 		public bool interact;
+		public bool grab;
 
 		[Header("Movement Settings")]
 		public bool analogMovement;
@@ -45,6 +46,11 @@ namespace StarterAssets
 			InteractInput(value.isPressed);
 		}
 
+		public void OnGrab(InputValue value)
+		{
+			GrabInput(value.isPressed);
+		}
+
 		public void OnSprint(InputValue value)
 		{
 			SprintInput(value.isPressed);
@@ -70,6 +76,11 @@ namespace StarterAssets
 		public void InteractInput(bool newInteractState)
 		{
 			interact = newInteractState;
+		}
+
+		public void GrabInput(bool newGrabState)
+		{
+			grab = newGrabState;
 		}
 
 		public void SprintInput(bool newSprintState)

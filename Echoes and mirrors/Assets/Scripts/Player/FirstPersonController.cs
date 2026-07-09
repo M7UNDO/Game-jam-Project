@@ -21,14 +21,21 @@ namespace StarterAssets
 		[Header("Interaction Settings")]
 		public float InteractionRange = 5f;
 		public LayerMask InteractionLayer;
-		public IInteractable currentInteractable;
+		private IInteractable currentInteractable;
 
 		public bool isInteractable =false;
 		public Image Crosshair;
 		public Image InteractableCrosshair;
 
+		[Header("Interaction Settings")]
 
-		[Space(10)]
+        [SerializeField] private Transform objectGrabPointTransform;
+        private ObjectGrabbable currentObject;
+		private ObjectGrabbable targetObject;
+
+
+
+        [Space(10)]
 		public float JumpHeight = 1.2f;
 		public float Gravity = -15.0f;
 
@@ -121,12 +128,15 @@ namespace StarterAssets
         public void DetectInteractable()
         {
             currentInteractable = null;
+            targetObject = null;
+            isInteractable = false;
 
             Ray ray = new Ray(_mainCamera.transform.position, _mainCamera.transform.forward);
             Debug.DrawRay(ray.origin, ray.direction * InteractionRange);
 
             if (Physics.Raycast(ray, out RaycastHit hit, InteractionRange, InteractionLayer))
             {
+               
                 if (hit.collider.TryGetComponent<IInteractable>(out var interactable))
                 {
                     currentInteractable = interactable;
@@ -137,7 +147,14 @@ namespace StarterAssets
                         //Debug.Log($"Detecting Intercatable Object {testObject.gameObject}");
                     }
                 }
-                
+
+                ObjectGrabbable grabbable = hit.collider.GetComponentInParent<ObjectGrabbable>();
+                if (grabbable != null)
+                {
+                    targetObject = grabbable;
+                    isInteractable = true;
+                }
+
 
             }
             else
@@ -150,17 +167,65 @@ namespace StarterAssets
 
         public void Interact()
         {
-            if (currentInteractable != null)
+            if (_input.interact)
             {
-                if (_input.interact)
+                _input.interact = false;
+
+                if (currentObject != null)
+                {
+                    DropObject();
+                    return;
+                }
+
+                // Fire the generic interaction first (e.g., play a sound, print a debug log)
+                if (currentInteractable != null)
                 {
                     currentInteractable.Interact();
                 }
-            }
 
+                // Then handle the grabbing sequence right after without an early return statement
+                if (targetObject != null && currentObject == null)
+                {
+                    TryGrabObject();
+                }
+            }
         }
 
-		public void UpdateCrosshair()
+        public void TryGrabObject()
+		{
+			if (targetObject == null) return;
+
+			currentObject = targetObject;
+			currentObject.Grab(objectGrabPointTransform);
+
+			targetObject = null;
+		}
+
+        private void SetTargetObject(ObjectGrabbable newTarget)
+        {
+            if (targetObject == newTarget) return;
+
+            ClearTargetObject();
+
+            targetObject = newTarget;
+        }
+
+        private void ClearTargetObject()
+        {
+            if (targetObject == null) return;
+            targetObject = null;
+        }
+
+
+        private void DropObject()
+        {
+            if (currentObject == null) return;
+
+            currentObject.Drop();
+            currentObject = null;
+        }
+
+        public void UpdateCrosshair()
 		{
 
 			if(Crosshair!= null && InteractableCrosshair)
@@ -185,29 +250,40 @@ namespace StarterAssets
 			Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers, QueryTriggerInteraction.Ignore);
 		}
 
-		private void CameraRotation()
-		{
-			// if there is an input
-			if (_input.look.sqrMagnitude >= _threshold)
-			{
-				//Don't multiply mouse input by Time.deltaTime
-				float deltaTimeMultiplier = IsCurrentDeviceMouse ? 1.0f : Time.deltaTime;
-				
-				_cinemachineTargetPitch += _input.look.y * RotationSpeed * deltaTimeMultiplier;
-				_rotationVelocity = _input.look.x * RotationSpeed * deltaTimeMultiplier;
+        private void CameraRotation()
+        {
+            if (currentObject != null && _input.grab)
+            {
+                if (_input.look.sqrMagnitude >= _threshold)
+                {
+                    float deltaTimeMultiplier = IsCurrentDeviceMouse ? 1.0f : Time.deltaTime;
 
-				// clamp our pitch rotation
-				_cinemachineTargetPitch = ClampAngle(_cinemachineTargetPitch, BottomClamp, TopClamp);
+                    // 1. VASTLY LOWER SENSITIVITY: Dropped from 75f to 0.5f for mouse precision
+                    // 2. COUNTERACT DELTA TIME: If it's a mouse, we keep it raw, if a controller stick, we scale it
+                    float pivotSensitivity = IsCurrentDeviceMouse ? 0.5f : 50f;
 
-				// Update Cinemachine camera target pitch
-				CinemachineCameraTarget.transform.localRotation = Quaternion.Euler(_cinemachineTargetPitch, 0.0f, 0.0f);
+                    // Apply the fine-tuned rotation to the grab point
+                    objectGrabPointTransform.Rotate(Vector3.up * _input.look.x * RotationSpeed * pivotSensitivity * deltaTimeMultiplier);
+                }
+                return; // INTERCEPT: Skip normal camera movement while fine-tuning angles
+            }
 
-				// rotate the player left and right
-				transform.Rotate(Vector3.up * _rotationVelocity);
-			}
-		}
+            // Standard First-Person Camera Look Logic
+            if (_input.look.sqrMagnitude >= _threshold)
+            {
+                float deltaTimeMultiplier = IsCurrentDeviceMouse ? 1.0f : Time.deltaTime;
 
-		private void Move()
+                _cinemachineTargetPitch += _input.look.y * RotationSpeed * deltaTimeMultiplier;
+                _rotationVelocity = _input.look.x * RotationSpeed * deltaTimeMultiplier;
+
+                _cinemachineTargetPitch = ClampAngle(_cinemachineTargetPitch, BottomClamp, TopClamp);
+
+                CinemachineCameraTarget.transform.localRotation = Quaternion.Euler(_cinemachineTargetPitch, 0.0f, 0.0f);
+                transform.Rotate(Vector3.up * _rotationVelocity);
+            }
+        }
+
+        private void Move()
 		{
 			// set target speed based on move speed, sprint speed and if sprint is pressed
 			float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
