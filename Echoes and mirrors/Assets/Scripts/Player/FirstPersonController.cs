@@ -30,6 +30,7 @@ namespace StarterAssets
 		[Header("Interaction Settings")]
 
         [SerializeField] private Transform objectGrabPointTransform;
+        private InteractableOutline currentInteractableOutline;
         private ObjectGrabbable currentObject;
 		private ObjectGrabbable targetObject;
 
@@ -127,8 +128,17 @@ namespace StarterAssets
 
         public void DetectInteractable()
         {
+            if (currentObject != null) return;
+
+			ClearTargetObject();
+
+            if (currentInteractableOutline != null)
+            {
+                currentInteractableOutline.SetOutline(false);
+                currentInteractableOutline = null;
+            }
+
             currentInteractable = null;
-            targetObject = null;
             isInteractable = false;
 
             Ray ray = new Ray(_mainCamera.transform.position, _mainCamera.transform.forward);
@@ -142,6 +152,12 @@ namespace StarterAssets
                     currentInteractable = interactable;
 					isInteractable = true;
 
+                    if (hit.collider.TryGetComponent<InteractableOutline>(out var interactableOutline))
+                    {
+                        currentInteractableOutline = interactableOutline;
+                        currentInteractableOutline.SetOutline(true);
+                    }
+
                     if (hit.collider.TryGetComponent<TestObject>(out TestObject testObject))
                     {
                         //Debug.Log($"Detecting Intercatable Object {testObject.gameObject}");
@@ -151,7 +167,7 @@ namespace StarterAssets
                 ObjectGrabbable grabbable = hit.collider.GetComponentInParent<ObjectGrabbable>();
                 if (grabbable != null)
                 {
-                    targetObject = grabbable;
+                    SetTargetObject(grabbable);
                     isInteractable = true;
                 }
 
@@ -180,10 +196,13 @@ namespace StarterAssets
                 // Fire the generic interaction first (e.g., play a sound, print a debug log)
                 if (currentInteractable != null)
                 {
+                    if (currentInteractableOutline != null)
+                    {
+                        currentInteractableOutline.SetOutline(false);
+                    }
                     currentInteractable.Interact();
                 }
 
-                // Then handle the grabbing sequence right after without an early return statement
                 if (targetObject != null && currentObject == null)
                 {
                     TryGrabObject();
@@ -196,7 +215,8 @@ namespace StarterAssets
 			if (targetObject == null) return;
 
 			currentObject = targetObject;
-			currentObject.Grab(objectGrabPointTransform);
+            currentObject.SetOutline(false);
+            currentObject.Grab(objectGrabPointTransform);
 
 			targetObject = null;
 		}
@@ -205,22 +225,23 @@ namespace StarterAssets
         {
             if (targetObject == newTarget) return;
 
-            ClearTargetObject();
-
             targetObject = newTarget;
+            targetObject.SetOutline(true);
         }
 
         private void ClearTargetObject()
         {
             if (targetObject == null) return;
+            targetObject.SetOutline(false);
             targetObject = null;
+
         }
 
 
         private void DropObject()
         {
             if (currentObject == null) return;
-
+            currentObject.SetOutline(false);
             currentObject.Drop();
             currentObject = null;
         }

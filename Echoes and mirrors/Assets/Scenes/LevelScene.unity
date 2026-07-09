@@ -596,6 +596,7 @@ GameObject:
   - component: {fileID: 284638461}
   - component: {fileID: 284638460}
   - component: {fileID: 284638459}
+  - component: {fileID: 284638465}
   m_Layer: 6
   m_Name: TestCube (1)
   m_TagString: Untagged
@@ -615,6 +616,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac0f4319e27bdbe4dba240a97acf8b5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObjectGrabbable
+  outline: {fileID: 284638465}
 --- !u!54 &284638460
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -735,6 +737,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &284638465
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 284638458}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Outline
+  outlineMode: 0
+  outlineColor: {r: 0, g: 0, b: 0, a: 1}
+  outlineWidth: 2
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
 --- !u!1 &286059185
 GameObject:
   m_ObjectHideFlags: 0
@@ -1355,6 +1375,8 @@ GameObject:
   - component: {fileID: 862954635}
   - component: {fileID: 862954634}
   - component: {fileID: 862954638}
+  - component: {fileID: 862954640}
+  - component: {fileID: 862954639}
   m_Layer: 6
   m_Name: TestCube
   m_TagString: Untagged
@@ -1467,6 +1489,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d95ddd083748ee045bb8d11310c2aa2f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TestObject
+--- !u!114 &862954639
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 862954633}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Outline
+  outlineMode: 0
+  outlineColor: {r: 0, g: 0, b: 0, a: 1}
+  outlineWidth: 2
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
+--- !u!114 &862954640
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 862954633}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ad48627190fa674eb98a92aae829d3e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractableOutline
+  outline: {fileID: 862954639}
 --- !u!4 &1052109551 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8997996947095583982, guid: c5efc39a8aaf6e64ea40e9ad573e9b47, type: 3}
