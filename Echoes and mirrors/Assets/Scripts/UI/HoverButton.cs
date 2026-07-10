@@ -49,6 +49,11 @@ public class HoverButton : MonoBehaviour,
         hiddenColour = borderColour;
         hiddenColour.a = 0f;
 
+        if(leftBorder == null)
+        {
+            leftBorder = transform.GetChild(0).GetComponent<Image>();
+        }
+
         if (leftBorder)
             leftBorder.color = hiddenColour;
     }

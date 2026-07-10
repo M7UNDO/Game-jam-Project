@@ -11,6 +11,11 @@ public class InputPromptUI : MonoBehaviour
     [SerializeField] private Sprite xboxSprite;
     [SerializeField] private Sprite playStationSprite;
 
+    public void Awake()
+    {
+        promptImage = GetComponent<Image>();
+    }
+
     private void Start()
     {
         UpdateSprite(InputDeviceDetector.Instance.CurrentDevice);
