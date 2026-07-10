@@ -145,6 +145,24 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Start"",
+                    ""type"": ""Button"",
+                    ""id"": ""b05aa61d-007e-4c7a-b697-c2168ea18a7f"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Back"",
+                    ""type"": ""Button"",
+                    ""id"": ""e994fef6-a27b-4538-9f9d-5f75a60fe776"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -367,6 +385,61 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""Grab"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6bd230fe-53e6-4571-acbb-2c7c765dc0ee"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";KeyboardMouse"",
+                    ""action"": ""Start"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""cb37966c-aa9c-438b-841c-d6d5751a2996"",
+                    ""path"": ""<Gamepad>/start"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""Start"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e5c5e70a-588f-42f5-9363-dedfe7e52869"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";KeyboardMouse"",
+                    ""action"": ""Start"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a1284be5-39d4-4303-995c-0a899f0a41d4"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";KeyboardMouse"",
+                    ""action"": ""Back"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""0e53ad6a-0f0e-4255-9148-b82bac272821"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Back"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -429,6 +502,8 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
         m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
         m_Player_Grab = m_Player.FindAction("Grab", throwIfNotFound: true);
+        m_Player_Start = m_Player.FindAction("Start", throwIfNotFound: true);
+        m_Player_Back = m_Player.FindAction("Back", throwIfNotFound: true);
     }
 
     ~@PlayerControls()
@@ -515,6 +590,8 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Sprint;
     private readonly InputAction m_Player_Interact;
     private readonly InputAction m_Player_Grab;
+    private readonly InputAction m_Player_Start;
+    private readonly InputAction m_Player_Back;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -550,6 +627,14 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/Grab".
         /// </summary>
         public InputAction @Grab => m_Wrapper.m_Player_Grab;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/Start".
+        /// </summary>
+        public InputAction @Start => m_Wrapper.m_Player_Start;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/Back".
+        /// </summary>
+        public InputAction @Back => m_Wrapper.m_Player_Back;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -594,6 +679,12 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Grab.started += instance.OnGrab;
             @Grab.performed += instance.OnGrab;
             @Grab.canceled += instance.OnGrab;
+            @Start.started += instance.OnStart;
+            @Start.performed += instance.OnStart;
+            @Start.canceled += instance.OnStart;
+            @Back.started += instance.OnBack;
+            @Back.performed += instance.OnBack;
+            @Back.canceled += instance.OnBack;
         }
 
         /// <summary>
@@ -623,6 +714,12 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Grab.started -= instance.OnGrab;
             @Grab.performed -= instance.OnGrab;
             @Grab.canceled -= instance.OnGrab;
+            @Start.started -= instance.OnStart;
+            @Start.performed -= instance.OnStart;
+            @Start.canceled -= instance.OnStart;
+            @Back.started -= instance.OnBack;
+            @Back.performed -= instance.OnBack;
+            @Back.canceled -= instance.OnBack;
         }
 
         /// <summary>
@@ -757,5 +854,19 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnGrab(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Start" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnStart(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Back" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnBack(InputAction.CallbackContext context);
     }
 }
