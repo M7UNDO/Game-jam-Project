@@ -64,7 +64,8 @@ public class MainMenuUI : MonoBehaviour
     [Space(5)]
     public AudioSource startGameSource;
 
-    private bool hasStartedGame = false;
+    // CHANGED TO STATIC: Remembers state across scene reloads alongside hasSeenIntro
+    private static bool hasStartedGame = false;
     private static bool hasSeenIntro = false;
 
     private void Awake()
@@ -234,6 +235,7 @@ public class MainMenuUI : MonoBehaviour
     public void StartGame()
     {
         hasSeenIntro = true;
+        hasStartedGame = true;
 
         if (flashCoroutine != null)
             StopCoroutine(flashCoroutine);

@@ -121,6 +121,7 @@ namespace StarterAssets
 
         private void LateUpdate()
         {
+            if(PauseMenuUI.IsPaused) return;
             CameraRotation();
         }
 
