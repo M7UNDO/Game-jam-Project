@@ -121,7 +121,7 @@ namespace StarterAssets
 
         private void LateUpdate()
         {
-            if(PauseMenuUI.IsPaused) return;
+            if (PauseMenuUI.IsPaused) return;
             CameraRotation();
         }
 
@@ -364,6 +364,39 @@ namespace StarterAssets
             {
                 _verticalVelocity += Gravity * Time.deltaTime;
             }
+        }
+
+        /// <summary>
+        /// Safely moves the controller to a target spawn point without breaking momentum, angles, or lock states.
+        /// </summary>
+        public void Teleport(Vector3 position, Quaternion rotation)
+        {
+            // Drop any held grabbable objects so they don't break or fly across the level layout
+            DropObject();
+
+            // 1. Disable the CharacterController processing loop safely
+            if (_controller != null) _controller.enabled = false;
+
+            // 2. Perform the movement adjustments directly
+            transform.position = position;
+
+            // Extract ONLY the Y-Axis rotation from your spawn target to prevent player structural tilting
+            float targetYRotation = rotation.eulerAngles.y;
+            transform.rotation = Quaternion.Euler(0.0f, targetYRotation, 0.0f);
+
+            // 3. Clear existing engine forces so falling momentum doesn't transfer over
+            _verticalVelocity = 0.0f;
+            _speed = 0.0f;
+
+            // 4. Force look target track calculation down back to flat level horizons (0)
+            _cinemachineTargetPitch = 0.0f;
+            if (CinemachineCameraTarget != null)
+            {
+                CinemachineCameraTarget.transform.localRotation = Quaternion.identity;
+            }
+
+            // 5. Restore the internal loop processing step
+            if (_controller != null) _controller.enabled = true;
         }
 
         private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
