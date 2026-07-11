@@ -1,17 +1,15 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 
 public class TabController : MonoBehaviour
 {
     [Header("Tabs & Pages")]
-    [SerializeField] private Image[] tabButtons;
+    [Tooltip("Leave this empty! It will automatically populate from children on Awake.")]
+    [SerializeField] private Selectable[] tabButtons;
     [SerializeField] private GameObject[] pages;
-
-    [Header("Tab Button Colours")]
-    [SerializeField] private Color selectedTabColour;
-    [SerializeField] private Color deselectedTabColour;
-    [SerializeField] private Color hoverTabColour;
 
     [Header("Tab Text Colours")]
     [SerializeField] private Color selectedTextColour;
@@ -19,35 +17,107 @@ public class TabController : MonoBehaviour
     [SerializeField] private Color hoverTextColour;
 
     [Header("Settings")]
-    [SerializeField] private bool buttonFill;
     [SerializeField] private bool startWithActiveTab = true;
 
     [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
-    [SerializeField] private AudioClip hoverSFX;
     [SerializeField] private AudioClip clickSFX;
 
     private TextMeshProUGUI[] tabTexts;
     private int currentTab = -1;
+    private InputActionReference navigationActionRef;
 
     private void Awake()
     {
+        // 1. AUTOMATICALLY FIND ALL TAB BUTTONS IN CHILDREN
+        // This removes the need to drag and drop each button into the array.
+        if (tabButtons == null || tabButtons.Length == 0)
+        {
+            tabButtons = GetComponentsInChildren<Selectable>(true);
+        }
+
         tabTexts = new TextMeshProUGUI[tabButtons.Length];
 
         for (int i = 0; i < tabButtons.Length; i++)
         {
             if (tabButtons[i] != null)
             {
+                // 2. AUTOMATICALLY FIND TEXT
                 tabTexts[i] = tabButtons[i].GetComponentInChildren<TextMeshProUGUI>();
+
+                // 3. AUTOMATICALLY LINK TO HOVER BUTTON
+                // This tells HoverButton it's a tab and automatically pipes 
+                // selection/click events straight back here without Event Triggers!
+                if (tabButtons[i].TryGetComponent<HoverButton>(out var hoverBtn))
+                {
+                    hoverBtn.SetupTabController(this, i);
+                }
             }
+        }
+    }
+
+    public void InitializeTabNavigation(InputActionReference actionRef)
+    {
+        if (navigationActionRef != null)
+        {
+            navigationActionRef.action.performed -= OnTabNavigationPerformed;
+        }
+
+        navigationActionRef = actionRef;
+
+        if (navigationActionRef != null)
+        {
+            navigationActionRef.action.Enable();
+            navigationActionRef.action.performed += OnTabNavigationPerformed;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (navigationActionRef != null)
+        {
+            navigationActionRef.action.performed -= OnTabNavigationPerformed;
         }
     }
 
     private void Start()
     {
-        if (startWithActiveTab)
+        if (startWithActiveTab && tabButtons.Length > 0)
         {
             ActivateTab(0);
+        }
+    }
+
+    private void OnTabNavigationPerformed(InputAction.CallbackContext context)
+    {
+        if (EventSystem.current == null) return;
+
+        GameObject currentSelected = EventSystem.current.currentSelectedGameObject;
+        bool interactingWithTabs = false;
+
+        for (int i = 0; i < tabButtons.Length; i++)
+        {
+            if (tabButtons[i] != null && tabButtons[i].gameObject == currentSelected)
+            {
+                interactingWithTabs = true;
+                break;
+            }
+        }
+
+        if (!interactingWithTabs) return;
+
+        float value = context.ReadValue<float>();
+        if (value == 0) return;
+
+        int nextTab = currentTab + (value > 0 ? 1 : -1);
+
+        if (nextTab >= tabButtons.Length) nextTab = 0;
+        if (nextTab < 0) nextTab = tabButtons.Length - 1;
+
+        if (tabButtons[nextTab] != null)
+        {
+            EventSystem.current.SetSelectedGameObject(tabButtons[nextTab].gameObject);
+            ActivateTab(nextTab);
         }
     }
 
@@ -55,7 +125,6 @@ public class TabController : MonoBehaviour
     {
         if (!IsValidTab(tabNo)) return;
 
-        // Prevent click sound when clicking the already active tab
         if (tabNo != currentTab)
         {
             PlaySFX(clickSFX);
@@ -70,58 +139,44 @@ public class TabController : MonoBehaviour
             if (i < pages.Length && pages[i] != null)
             {
                 pages[i].SetActive(isSelected);
-            }
 
-            if (tabButtons[i] != null)
-            {
-                tabButtons[i].color = isSelected
-                    ? selectedTabColour
-                    : deselectedTabColour;
-
-                if (buttonFill)
+                if (isSelected)
                 {
-                    tabButtons[i].fillCenter = isSelected;
+                    FocusFirstElementInPage(pages[i]);
                 }
             }
 
             if (tabTexts[i] != null)
             {
-                tabTexts[i].color = isSelected
-                    ? selectedTextColour
-                    : deselectedTextColour;
+                tabTexts[i].color = isSelected ? selectedTextColour : deselectedTextColour;
             }
         }
     }
 
-    public void OnTabHover(int tabNo)
+    public void UpdateTabTextHoverState(int tabNo, bool isHovered)
     {
-        if (!IsValidTab(tabNo) || tabNo == currentTab) return;
-
-        PlaySFX(hoverSFX);
-
-        if (tabButtons[tabNo] != null)
-        {
-            tabButtons[tabNo].color = hoverTabColour;
-        }
+        if (!IsValidTab(tabNo)) return;
 
         if (tabTexts[tabNo] != null)
         {
-            tabTexts[tabNo].color = hoverTextColour;
+            if (isHovered)
+            {
+                if (tabNo != currentTab)
+                    tabTexts[tabNo].color = hoverTextColour;
+            }
+            else
+            {
+                tabTexts[tabNo].color = (tabNo == currentTab) ? selectedTextColour : deselectedTextColour;
+            }
         }
     }
 
-    public void OnTabExit(int tabNo)
+    private void FocusFirstElementInPage(GameObject page)
     {
-        if (!IsValidTab(tabNo) || tabNo == currentTab) return;
-
-        if (tabButtons[tabNo] != null)
+        Selectable firstSelectable = page.GetComponentInChildren<Selectable>();
+        if (firstSelectable != null && EventSystem.current != null)
         {
-            tabButtons[tabNo].color = deselectedTabColour;
-        }
-
-        if (tabTexts[tabNo] != null)
-        {
-            tabTexts[tabNo].color = deselectedTextColour;
+            EventSystem.current.SetSelectedGameObject(firstSelectable.gameObject);
         }
     }
 
@@ -135,8 +190,6 @@ public class TabController : MonoBehaviour
 
     private bool IsValidTab(int tabNo)
     {
-        return tabButtons != null &&
-               tabNo >= 0 &&
-               tabNo < tabButtons.Length;
+        return tabButtons != null && tabNo >= 0 && tabNo < tabButtons.Length;
     }
 }

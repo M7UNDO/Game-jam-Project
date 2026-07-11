@@ -10,9 +10,9 @@ public class MainMenuUI : MonoBehaviour
     [Header("References")]
     [Space(5)]
     [SerializeField] private PlayerControls playerControls;
+    [SerializeField] private TabController tabController; // Assign your Tab Controller here
 
     [Header("Level Settings")]
-
     public int levelIndex;
 
     [Header("Menu Panels")]
@@ -25,7 +25,6 @@ public class MainMenuUI : MonoBehaviour
     [Header("Canvas Groups")]
     [Space(5)]
     [SerializeField] private CanvasGroup startCanvasGroup;
-
     [SerializeField] private CanvasGroup menuCanvasGroup;
 
     [Header("Menu Settings")]
@@ -45,6 +44,7 @@ public class MainMenuUI : MonoBehaviour
     [Space(5)]
     [SerializeField] private InputActionReference startInput;
     [SerializeField] private InputActionReference backInput;
+    [SerializeField] private InputActionReference selectInput; // Your select input action lives here
 
     public TextMeshProUGUI startText;
     public float startFlashSpeed = 0.5f;
@@ -85,17 +85,26 @@ public class MainMenuUI : MonoBehaviour
 
     private void Start()
     {
+        // Automatically look for the TabController if it wasn't dragged in manually
+        if (tabController == null)
+        {
+            tabController = GetComponentInChildren<TabController>(true);
+        }
+
+        // Pass the action reference directly without linking the scripts together
+        if (tabController != null && selectInput != null)
+        {
+            tabController.InitializeTabNavigation(selectInput);
+        }
+
         if (hasSeenIntro)
         {
             startGamePanel.SetActive(false);
-
             mainMenuPanel.SetActive(true);
-
             creditsPanel.SetActive(false);
             settingsPanel.SetActive(false);
 
             SetMenuCanvasVisible(true);
-
             SetSelected(mainMenuFirstSelected);
 
             if (musicManager != null)
@@ -195,12 +204,10 @@ public class MainMenuUI : MonoBehaviour
     public void ResetMenuState()
     {
         mainMenuPanel.SetActive(true);
-
         creditsPanel.SetActive(false);
         settingsPanel.SetActive(false);
 
         SetMenuCanvasVisible(true);
-
         SetSelected(mainMenuFirstSelected);
     }
 
@@ -281,11 +288,8 @@ public class MainMenuUI : MonoBehaviour
         while (t < transitionDuration)
         {
             t += Time.unscaledDeltaTime;
-
             float normalized = t / transitionDuration;
-
             startCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, normalized);
-
             yield return null;
         }
 
@@ -306,11 +310,8 @@ public class MainMenuUI : MonoBehaviour
         while (t < transitionDuration)
         {
             t += Time.unscaledDeltaTime;
-
             float normalized = t / transitionDuration;
-
             menuCamera.rotation = Quaternion.Lerp(startRot, targetRot, normalized);
-
             yield return null;
         }
 
@@ -356,7 +357,6 @@ public class MainMenuUI : MonoBehaviour
     public void CloseSettings()
     {
         settingsPanel.SetActive(false);
-
         mainMenuPanel.SetActive(true);
 
         SetMenuCanvasVisible(true);
@@ -376,7 +376,6 @@ public class MainMenuUI : MonoBehaviour
     public void CloseCredits()
     {
         creditsPanel.SetActive(false);
-
         mainMenuPanel.SetActive(true);
 
         SetMenuCanvasVisible(true);
@@ -424,10 +423,8 @@ public class MainMenuUI : MonoBehaviour
     private IEnumerator SetSelectedNextFrame(GameObject obj)
     {
         yield return null;
-
         EventSystem.current.SetSelectedGameObject(null);
         yield return null;
-
         EventSystem.current.SetSelectedGameObject(obj);
     }
 

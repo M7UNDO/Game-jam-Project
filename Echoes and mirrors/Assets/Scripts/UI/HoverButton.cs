@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using TMPro;
 
 public class HoverButton : MonoBehaviour,
     IPointerEnterHandler,
@@ -33,23 +32,26 @@ public class HoverButton : MonoBehaviour,
     private Color hiddenColour;
     private bool isSelected;
 
+    // Optional fields initialized dynamically by the TabController if this is a tab
+    private TabController associatedTabController;
+    private int tabIndex = -1;
+
     private void Reset()
     {
         target = transform as RectTransform;
         selectable = GetComponent<Selectable>();
-        //audioSource = GetComponent<AudioSource>();
     }
 
     private void Awake()
     {
         target ??= transform as RectTransform;
         selectable ??= GetComponent<Selectable>();
-        //audioSource ??= GetComponent<AudioSource>();
 
         hiddenColour = borderColour;
         hiddenColour.a = 0f;
 
-        if(leftBorder == null)
+        // Safe check to find child image only if children exist and it wasn't manually assigned
+        if (leftBorder == null && transform.childCount > 0)
         {
             leftBorder = transform.GetChild(0).GetComponent<Image>();
         }
@@ -62,6 +64,16 @@ public class HoverButton : MonoBehaviour,
     {
         startPosX = target.anchoredPosition.x;
         targetPosX = startPosX;
+    }
+
+    /// <summary>
+    /// Called automatically by the TabController script to register this button as an active tab element.
+    /// Non-tab buttons will never call this, safely leaving the controller reference null.
+    /// </summary>
+    public void SetupTabController(TabController controller, int index)
+    {
+        associatedTabController = controller;
+        tabIndex = index;
     }
 
     private void Update()
@@ -96,7 +108,7 @@ public class HoverButton : MonoBehaviour,
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        PlaySFX(clickSFX);
+        HandleButtonActivation();
     }
 
     public void OnSelect(BaseEventData eventData)
@@ -105,17 +117,40 @@ public class HoverButton : MonoBehaviour,
         targetPosX = startPosX + hoverOffset;
 
         PlaySFX(hoverSFX);
+
+        // Optional: Only update tab text color if this button belongs to a TabController
+        if (associatedTabController != null)
+        {
+            associatedTabController.UpdateTabTextHoverState(tabIndex, true);
+        }
     }
 
     public void OnDeselect(BaseEventData eventData)
     {
         isSelected = false;
         targetPosX = startPosX;
+
+        // Optional: Only revert tab text color if this button belongs to a TabController
+        if (associatedTabController != null)
+        {
+            associatedTabController.UpdateTabTextHoverState(tabIndex, false);
+        }
     }
 
     public void OnSubmit(BaseEventData eventData)
     {
+        HandleButtonActivation();
+    }
+
+    private void HandleButtonActivation()
+    {
         PlaySFX(clickSFX);
+
+        // Optional: Only tell a TabController to swap pages if it exists
+        if (associatedTabController != null)
+        {
+            associatedTabController.ActivateTab(tabIndex);
+        }
     }
 
     private void PlaySFX(AudioClip clip)
