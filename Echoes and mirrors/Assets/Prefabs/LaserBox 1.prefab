@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2246479594313288595}
   - component: {fileID: 3538262624484017660}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: LaserFirePoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -45,6 +45,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Laser
   laserRendererSettings: {fileID: 11400000, guid: 52f6dfc0f8d2c1f4486b0cc6282742b0, type: 2}
+  collisionLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
   maxBounces: 100
   spawnForwardOffset: 0
   sparkParticlePrefab: {fileID: 7440191685052868192, guid: 5a936c83b1746f14f9100db745e94f04, type: 3}

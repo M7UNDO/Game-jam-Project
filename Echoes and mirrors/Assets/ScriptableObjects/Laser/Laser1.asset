@@ -15,3 +15,4 @@ MonoBehaviour:
   color: {r: 1, g: 0.85126793, b: 0, a: 0.48235294}
   width: 0.03
   emissionAmount: 10
+  laserMaterialTemplate: {fileID: 2100000, guid: ac9af08dce0962945850d44d6a019173, type: 2}

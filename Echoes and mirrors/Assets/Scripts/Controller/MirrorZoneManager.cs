@@ -16,9 +16,9 @@ public class MirrorZoneManager : MonoBehaviour
         {
             SetMirrorsActive(false);
         }
+
     }
 
-    // Call this when the player crosses the floor trigger boundary
     public void SetMirrorsActive(bool isActive)
     {
         foreach (var mirror in roomMirrors)
@@ -26,6 +26,7 @@ public class MirrorZoneManager : MonoBehaviour
             if (mirror != null)
             {
                 mirror.enabled = isActive;
+                Debug.Log($"{mirror.gameObject}: {mirror.enabled}");
 
                 // Optional optimization: If the mirror script doesn't completely clean up 
                 // its hidden camera object when disabled, we can force the GameObject off.

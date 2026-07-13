@@ -8,7 +8,6 @@ public class MirrorZoneTrigger : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // Check if the object entering the zone is the player controller
         if (other.CompareTag("Player"))
         {
             if (zoneManager != null)
@@ -20,7 +19,6 @@ public class MirrorZoneTrigger : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        // Turn the mirrors off the split-second the player leaves the room bounds
         if (other.CompareTag("Player"))
         {
             if (zoneManager != null)

@@ -8,6 +8,9 @@ public class Laser : MonoBehaviour, IOutput
     LineRenderer lineRenderer;
     [SerializeField] LaserRendererSettings laserRendererSettings;
 
+    [Header("Laser Physics Setup")]
+    [SerializeField] private LayerMask collisionLayers = ~0;
+
     Vector3 sourcePosition;
     const float farDistance = 1000f;
     List<Vector3> bouncePositions;
@@ -32,7 +35,7 @@ public class Laser : MonoBehaviour, IOutput
     [SerializeField] GameObject inputGO;
     public IInput input { get; private set; }
 
-    // Cached reference to our own collider to filter out back-reflections
+
     private Collider ourOwnCollider;
 
     void Awake()
@@ -40,7 +43,7 @@ public class Laser : MonoBehaviour, IOutput
         lineRenderer = gameObject.AddComponent<LineRenderer>();
         laserRendererSettings.Apply(lineRenderer);
 
-        // Cache our own collider component if one exists on this object
+
         ourOwnCollider = GetComponent<Collider>();
 
         lineRenderer.alignment = LineAlignment.View;
@@ -110,7 +113,7 @@ public class Laser : MonoBehaviour, IOutput
         if (bouncePositions.Count > maxBounces) return;
 
         Ray ray = new Ray(origin, direction);
-        bool didHit = Physics.Raycast(ray, out RaycastHit hitInfo, farDistance);
+        bool didHit = Physics.Raycast(ray, out RaycastHit hitInfo, farDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
 
         if (!didHit)
         {
@@ -126,11 +129,10 @@ public class Laser : MonoBehaviour, IOutput
             return;
         }
 
-        // --- NEW SAFETY FILTER ---
-        // If the beam bounces back and hits the laser box's own collider, stop the sequence cleanly without sparking
+
         if (ourOwnCollider != null && hitInfo.collider == ourOwnCollider)
         {
-            // Terminate the beam line right at the face of the gun muzzle smoothly
+
             bouncePositions.Add(hitInfo.point);
             hitNormals.Add(hitInfo.normal);
 
